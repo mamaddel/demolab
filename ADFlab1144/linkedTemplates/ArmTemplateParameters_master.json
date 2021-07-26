@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "ADFlab1144"
+		},
+		"ADFLABuser_connectionString": {
+			"value": ""
+		},
+		"AzSQLDW_connectionString": {
+			"value": ""
+		},
+		"AzureStorageLinkedService_connectionString": {
+			"value": ""
+		},
+		"SSISDB Azure Endpoint_connectionString": {
+			"value": ""
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"value": "adflabsqlfy43f.database.windows.net"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"value": "labadmin"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"value": ""
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

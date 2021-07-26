@@ -1,0 +1,90 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ADFlab1144"
+		},
+		"ADFLABuser_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ADFLABuser'"
+		},
+		"AzSQLDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzSQLDW'"
+		},
+		"AzureStorageLinkedService_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureStorageLinkedService'"
+		},
+		"SSISDB Azure Endpoint_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SSISDB Azure Endpoint'"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"type": "string",
+			"defaultValue": "adflabsqlfy43f.database.windows.net"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"type": "string",
+			"defaultValue": "labadmin"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"type": "secureString"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "ADFlab1144_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ADFLABuser_connectionString": {
+						"value": "[parameters('ADFLABuser_connectionString')]"
+					},
+					"AzSQLDW_connectionString": {
+						"value": "[parameters('AzSQLDW_connectionString')]"
+					},
+					"AzureStorageLinkedService_connectionString": {
+						"value": "[parameters('AzureStorageLinkedService_connectionString')]"
+					},
+					"SSISDB Azure Endpoint_connectionString": {
+						"value": "[parameters('SSISDB Azure Endpoint_connectionString')]"
+					},
+					"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+						"value": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint')]"
+					},
+					"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+						"value": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName')]"
+					},
+					"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+						"value": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

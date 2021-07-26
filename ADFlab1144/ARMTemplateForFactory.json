@@ -1,0 +1,975 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ADFlab1144"
+		},
+		"ADFLABuser_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ADFLABuser'"
+		},
+		"AzSQLDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzSQLDW'"
+		},
+		"AzureStorageLinkedService_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureStorageLinkedService'"
+		},
+		"SSISDB Azure Endpoint_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SSISDB Azure Endpoint'"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"type": "string",
+			"defaultValue": "adflabsqlfy43f.database.windows.net"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"type": "string",
+			"defaultValue": "labadmin"
+		},
+		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"type": "secureString"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/CopyData')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select * from [dbo].[Flight]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSqlTable3",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": [],
+				"lastPublishTime": "2021-07-06T03:57:04Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable2')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable3')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Module2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ExecuteSQL",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "sp_executeSql",
+							"storedProcedureParameters": {
+								"stmt": {
+									"value": "DECLARE @return_value INT, @exe_id BIGINT, @err_msg NVARCHAR(150)    EXEC @return_value=[SSISDB].[catalog].[create_execution] @folder_name=N'ADFLab', @project_name=N'ADFLab', @package_name=N'Module2.dtsx', @use32bitruntime=0, @runinscaleout=1, @useanyworker=1, @execution_id=@exe_id OUTPUT    EXEC [SSISDB].[catalog].[set_execution_parameter_value] @exe_id, @object_type=50, @parameter_name=N'SYNCHRONIZED', @parameter_value=1    EXEC [SSISDB].[catalog].[start_execution] @execution_id=@exe_id, @retry_count=0    IF(SELECT [status] FROM [SSISDB].[catalog].[executions] WHERE execution_id=@exe_id)<>7 BEGIN SET @err_msg=N'Your package execution did not succeed for execution ID: ' + CAST(@exe_id AS NVARCHAR(20)) RAISERROR(@err_msg,15,1) END",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "SSISDB Azure Endpoint",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"annotations": [],
+				"lastPublishTime": "2021-05-16T11:05:58Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SSISDB Azure Endpoint')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/fail')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceBlobDataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "SendSuccessEmailActivity",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-41.eastus2.logic.azure.com:443/workflows/0d6cbdd9b9b64855b5077266a0030a01/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EkD73ecXVQxv5qNcNzHB1dLlpj10EEtsokkgiKk1W4o",
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"body": {
+								"message": "@{activity('Copy1').output.dataWritten}",
+								"dataFactoryName": "@{pipeline().DataFactory}",
+								"pipelineName": "@{pipeline().Pipeline}",
+								"receiver": "@pipeline().parameters.receiver"
+							}
+						}
+					},
+					{
+						"name": "SendFailureEmailActivity",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-42.eastus2.logic.azure.com:443/workflows/afdec947656c434f870659598601393d/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=H0ZCHVRvQ76HLAN5nyi2hWiDWhoFbLWqT6_iUg_S_sg",
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"body": {
+								"message": "@{activity('Copy1').error.message}",
+								"dataFactoryName": "@{pipeline().DataFactory}",
+								"pipelineName": "@{pipeline().Pipeline}",
+								"receiver": "@pipeline().parameters.receiver"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"sourceBlobContainer": {
+						"type": "string"
+					},
+					"sinkBlobContainer": {
+						"type": "string"
+					},
+					"receiver": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-22T09:41:37Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SourceBlobDataset')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Web1",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://qaz.vault.azure.net/secrets/SQLuser/df77e87200b049039949735e7b73df9d?api-version=7.0",
+							"method": "GET",
+							"headers": {},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Set variable1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Web1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "outvalue",
+							"value": {
+								"value": "@activity('Web1').output.value",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"variables": {
+					"outvalue": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SSISDB Azure Endpoint",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "property_name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "property_value",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "catalog",
+					"table": "catalog_properties"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SSISDB Azure Endpoint')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADFLABuser",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "YEAR",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "MONTH",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "FL_DATE",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "UNIQUE_CARRIER",
+						"type": "varchar"
+					},
+					{
+						"name": "AIRLINE_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CARRIER",
+						"type": "varchar"
+					},
+					{
+						"name": "TAIL_NUM",
+						"type": "varchar"
+					},
+					{
+						"name": "FL_NUM",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_AIRPORT_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_AIRPORT_SEQ_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_CITY_MARKET_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_AIRPORT_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_AIRPORT_SEQ_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_CITY_MARKET_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEP_TIME",
+						"type": "varchar"
+					},
+					{
+						"name": "DEP_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "DEP_DELAY_NEW",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "TAXI_OUT",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "WHEELS_OFF",
+						"type": "varchar"
+					},
+					{
+						"name": "WHEELS_ON",
+						"type": "varchar"
+					},
+					{
+						"name": "TAXI_IN",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "ARR_TIME",
+						"type": "varchar"
+					},
+					{
+						"name": "ARR_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "ARR_DELAY_NEW",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "CANCELLED",
+						"type": "bit"
+					},
+					{
+						"name": "CANCELLATION_CODE",
+						"type": "varchar"
+					},
+					{
+						"name": "ACTUAL_ELAPSED_TIME",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "AIR_TIME",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "FLIGHTS",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DISTANCE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CARRIER_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "WEATHER_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "NAS_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "SECURITY_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "LATE_AIRCRAFT_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "DEST_CODE",
+						"type": "varchar"
+					},
+					{
+						"name": "ORIGIN_CODE",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Flight"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADFLABuser')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzSQLDW",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "YEAR",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "MONTH",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "FL_DATE",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "UNIQUE_CARRIER",
+						"type": "varchar"
+					},
+					{
+						"name": "AIRLINE_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CARRIER",
+						"type": "varchar"
+					},
+					{
+						"name": "TAIL_NUM",
+						"type": "varchar"
+					},
+					{
+						"name": "FL_NUM",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_AIRPORT_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_AIRPORT_SEQ_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ORIGIN_CITY_MARKET_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_AIRPORT_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_AIRPORT_SEQ_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEST_CITY_MARKET_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DEP_TIME",
+						"type": "varchar"
+					},
+					{
+						"name": "DEP_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "DEP_DELAY_NEW",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "TAXI_OUT",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "WHEELS_OFF",
+						"type": "varchar"
+					},
+					{
+						"name": "WHEELS_ON",
+						"type": "varchar"
+					},
+					{
+						"name": "TAXI_IN",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "ARR_TIME",
+						"type": "varchar"
+					},
+					{
+						"name": "ARR_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "ARR_DELAY_NEW",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "CANCELLED",
+						"type": "bit"
+					},
+					{
+						"name": "CANCELLATION_CODE",
+						"type": "varchar"
+					},
+					{
+						"name": "ACTUAL_ELAPSED_TIME",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "AIR_TIME",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "FLIGHTS",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DISTANCE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CARRIER_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "WEATHER_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "NAS_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "SECURITY_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "LATE_AIRCRAFT_DELAY",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "DEST_CODE",
+						"type": "varchar"
+					},
+					{
+						"name": "ORIGIN_CODE",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Flight2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzSQLDW')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "blobsource"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureStorageLinkedService')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceBlobDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "FAAMerge.hql",
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureStorageLinkedService')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADFLABuser')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('ADFLABuser_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzSQLDW')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzSQLDW_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureStorageLinkedService')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureStorageLinkedService_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SSISDB Azure Endpoint')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SSISDB Azure Endpoint_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SSISInt')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "Central US",
+						"nodeSize": "Standard_D8_v3",
+						"numberOfNodes": 1,
+						"maxParallelExecutionsPerNode": 1
+					},
+					"ssisProperties": {
+						"catalogInfo": {
+							"catalogServerEndpoint": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint')]",
+							"catalogAdminUserName": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName')]",
+							"catalogAdminPassword": {
+								"type": "SecureString",
+								"value": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword')]"
+							},
+							"catalogPricingTier": "S1"
+						},
+						"edition": "Standard",
+						"licenseType": "LicenseIncluded"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		}
+	]
+}
