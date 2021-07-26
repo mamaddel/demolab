@@ -1,0 +1,26 @@
+{
+	"name": "AzureSqlTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SSISDB Azure Endpoint",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "property_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "property_value",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "catalog",
+			"table": "catalog_properties"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

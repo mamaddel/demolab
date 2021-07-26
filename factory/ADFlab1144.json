@@ -1,0 +1,9 @@
+{
+	"name": "ADFlab1144",
+	"location": "centralus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "4b605adf-2ce9-4cf4-9eb0-8fd3ac62a5b3",
+		"tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	}
+}
