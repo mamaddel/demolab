@@ -17,6 +17,9 @@
 		"SSISDB Azure Endpoint_connectionString": {
 			"value": ""
 		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
 		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
 			"value": "adflabsqlfy43f.database.windows.net"
 		},
