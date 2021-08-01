@@ -11,7 +11,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": "emp.txt",
-				"folderPath": "input",
+				"folderPath": "Input",
 				"container": "adftutorial"
 			}
 		}
