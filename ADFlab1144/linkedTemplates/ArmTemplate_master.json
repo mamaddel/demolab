@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzSQLDW'"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
 		"AzureStorageLinkedService_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureStorageLinkedService'"
@@ -22,10 +26,6 @@
 		"SSISDB Azure Endpoint_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SSISDB Azure Endpoint'"
-		},
-		"AzureBlobStorage1_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
 		},
 		"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
 			"type": "string",
@@ -71,14 +71,14 @@
 					"AzSQLDW_connectionString": {
 						"value": "[parameters('AzSQLDW_connectionString')]"
 					},
+					"AzureBlobStorage1_connectionString": {
+						"value": "[parameters('AzureBlobStorage1_connectionString')]"
+					},
 					"AzureStorageLinkedService_connectionString": {
 						"value": "[parameters('AzureStorageLinkedService_connectionString')]"
 					},
 					"SSISDB Azure Endpoint_connectionString": {
 						"value": "[parameters('SSISDB Azure Endpoint_connectionString')]"
-					},
-					"AzureBlobStorage1_connectionString": {
-						"value": "[parameters('AzureBlobStorage1_connectionString')]"
 					},
 					"SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
 						"value": "[parameters('SSISInt_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint')]"
